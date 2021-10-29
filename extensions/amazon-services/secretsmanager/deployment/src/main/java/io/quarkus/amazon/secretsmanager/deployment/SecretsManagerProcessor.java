@@ -1,8 +1,12 @@
 package io.quarkus.amazon.secretsmanager.deployment;
 
+import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
+
 import java.util.List;
 
 import org.jboss.jandex.DotName;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.quarkus.amazon.common.deployment.AbstractAmazonServiceProcessor;
 import io.quarkus.amazon.common.deployment.AmazonClientAsyncTransportBuildItem;
@@ -17,10 +21,14 @@ import io.quarkus.amazon.common.runtime.AmazonClientUrlConnectionTransportRecord
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerBuildTimeConfig;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerClientProducer;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerConfig;
+import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerCredentialsProvider;
+import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerMapperRecorder;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerRecorder;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import io.quarkus.arc.deployment.BeanContainerBuildItem;
 import io.quarkus.arc.deployment.BeanRegistrationPhaseBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
+import io.quarkus.arc.deployment.UnremovableBeanBuildItem;
 import io.quarkus.deployment.Feature;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -28,6 +36,7 @@ import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.ExtensionSslNativeSupportBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.jackson.runtime.ObjectMapperProducer;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerAsyncClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerAsyncClientBuilder;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
@@ -60,6 +69,21 @@ public class SecretsManagerProcessor extends AbstractAmazonServiceProcessor {
     @Override
     protected String builtinInterceptorsPath() {
         return "software/amazon/awssdk/services/secretsmanager/execution.interceptors";
+    }
+
+    @BuildStep
+    public void markObjectMapper(BuildProducer<UnremovableBeanBuildItem> unremovable) {
+        unremovable.produce(new UnremovableBeanBuildItem(
+                new UnremovableBeanBuildItem.BeanClassNameExclusion(ObjectMapper.class.getName())));
+        unremovable.produce(new UnremovableBeanBuildItem(
+                new UnremovableBeanBuildItem.BeanClassNameExclusion(ObjectMapperProducer.class.getName())));
+    }
+
+    @BuildStep()
+    @Record(STATIC_INIT)
+    public void staticInit(BeanContainerBuildItem beanContainer, // make sure beanContainer is initialized
+            SecretsManagerMapperRecorder recorder) {
+        recorder.initObjectMapper();
     }
 
     @BuildStep
@@ -136,5 +160,13 @@ public class SecretsManagerProcessor extends AbstractAmazonServiceProcessor {
                 SecretsManagerAsyncClientBuilder.class,
                 (asyncTransport) -> recorder.createAsyncBuilder(runtimeConfig, asyncTransport),
                 syntheticBeans);
+    }
+
+    @BuildStep
+    AdditionalBeanBuildItem registerAdditionalBeans() {
+        return new AdditionalBeanBuildItem.Builder()
+                .setUnremovable()
+                .addBeanClass(SecretsManagerCredentialsProvider.class)
+                .build();
     }
 }

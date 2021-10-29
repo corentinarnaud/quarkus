@@ -19,7 +19,7 @@ public class SecretsManagerBuildTimeConfig {
     public SdkBuildTimeConfig sdk;
 
     /**
-     * Sync HTTP transport configuration for Amazon Secrets Manager client
+     * Sync HTTP transport configuration for AWS Secrets Manager client
      */
     @ConfigItem
     public SyncHttpClientBuildTimeConfig syncClient;

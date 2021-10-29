@@ -27,6 +27,14 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-netty</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-credentials</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jackson</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>io.quarkus</groupId>
