@@ -1,5 +1,6 @@
 package io.quarkus.amazon.secretsmanager.deployment;
 
+import static io.quarkus.deployment.annotations.ExecutionTime.RUNTIME_INIT;
 import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 
 import java.util.List;
@@ -18,9 +19,11 @@ import io.quarkus.amazon.common.runtime.AmazonClientApacheTransportRecorder;
 import io.quarkus.amazon.common.runtime.AmazonClientNettyTransportRecorder;
 import io.quarkus.amazon.common.runtime.AmazonClientRecorder;
 import io.quarkus.amazon.common.runtime.AmazonClientUrlConnectionTransportRecorder;
+import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerBootstrapConfig;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerBuildTimeConfig;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerClientProducer;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerConfig;
+import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerConfigHolder;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerCredentialsProvider;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerMapperRecorder;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerRecorder;
@@ -32,7 +35,6 @@ import io.quarkus.arc.deployment.UnremovableBeanBuildItem;
 import io.quarkus.deployment.Feature;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.ExtensionSslNativeSupportBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
@@ -79,11 +81,18 @@ public class SecretsManagerProcessor extends AbstractAmazonServiceProcessor {
                 new UnremovableBeanBuildItem.BeanClassNameExclusion(ObjectMapperProducer.class.getName())));
     }
 
-    @BuildStep()
+    @BuildStep
     @Record(STATIC_INIT)
     public void staticInit(BeanContainerBuildItem beanContainer, // make sure beanContainer is initialized
             SecretsManagerMapperRecorder recorder) {
         recorder.initObjectMapper();
+    }
+
+    @BuildStep
+    @Record(RUNTIME_INIT)
+    void configure(SecretsManagerRecorder recorder,
+            SecretsManagerBootstrapConfig secretsManagerBootstrapConfig, SecretsManagerConfig secretsManagerConfig) {
+        recorder.configure(secretsManagerBootstrapConfig);
     }
 
     @BuildStep
@@ -103,7 +112,7 @@ public class SecretsManagerProcessor extends AbstractAmazonServiceProcessor {
     }
 
     @BuildStep(onlyIf = AmazonHttpClients.IsAmazonApacheHttpServicePresent.class)
-    @Record(ExecutionTime.RUNTIME_INIT)
+    @Record(RUNTIME_INIT)
     void setupApacheSyncTransport(List<AmazonClientBuildItem> amazonClients, SecretsManagerRecorder recorder,
             AmazonClientApacheTransportRecorder transportRecorder,
             SecretsManagerConfig runtimeConfig, BuildProducer<AmazonClientSyncTransportBuildItem> syncTransports) {
@@ -116,7 +125,7 @@ public class SecretsManagerProcessor extends AbstractAmazonServiceProcessor {
     }
 
     @BuildStep(onlyIf = AmazonHttpClients.IsAmazonUrlConnectionHttpServicePresent.class)
-    @Record(ExecutionTime.RUNTIME_INIT)
+    @Record(RUNTIME_INIT)
     void setupUrlConnectionSyncTransport(List<AmazonClientBuildItem> amazonClients, SecretsManagerRecorder recorder,
             AmazonClientUrlConnectionTransportRecorder transportRecorder,
             SecretsManagerConfig runtimeConfig, BuildProducer<AmazonClientSyncTransportBuildItem> syncTransports) {
@@ -129,7 +138,7 @@ public class SecretsManagerProcessor extends AbstractAmazonServiceProcessor {
     }
 
     @BuildStep(onlyIf = AmazonHttpClients.IsAmazonNettyHttpServicePresent.class)
-    @Record(ExecutionTime.RUNTIME_INIT)
+    @Record(RUNTIME_INIT)
     void setupNettyAsyncTransport(List<AmazonClientBuildItem> amazonClients, SecretsManagerRecorder recorder,
             AmazonClientNettyTransportRecorder transportRecorder,
             SecretsManagerConfig runtimeConfig, BuildProducer<AmazonClientAsyncTransportBuildItem> asyncTransports) {
@@ -141,7 +150,7 @@ public class SecretsManagerProcessor extends AbstractAmazonServiceProcessor {
     }
 
     @BuildStep
-    @Record(ExecutionTime.RUNTIME_INIT)
+    @Record(RUNTIME_INIT)
     void createClientBuilders(SecretsManagerRecorder recorder,
             AmazonClientRecorder commonRecorder,
             SecretsManagerConfig runtimeConfig,
@@ -166,6 +175,7 @@ public class SecretsManagerProcessor extends AbstractAmazonServiceProcessor {
     AdditionalBeanBuildItem registerAdditionalBeans() {
         return new AdditionalBeanBuildItem.Builder()
                 .setUnremovable()
+                .addBeanClass(SecretsManagerConfigHolder.class)
                 .addBeanClass(SecretsManagerCredentialsProvider.class)
                 .build();
     }

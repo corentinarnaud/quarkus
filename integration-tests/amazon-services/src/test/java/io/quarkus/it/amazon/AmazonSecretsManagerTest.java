@@ -19,4 +19,10 @@ public class AmazonSecretsManagerTest {
     public void testSecretsManagerSync() {
         RestAssured.when().get("/test/secretsmanager/sync").then().body(is("Quarkus is awsome"));
     }
+
+    @Test
+    public void testSecretsManagerCredentialsProvider() {
+        RestAssured.when().get("/test/secretsmanager/credential").then()
+                .body(is("{\"username\": \"quarkus\", \"password\": \"awsome\"}"));
+    }
 }

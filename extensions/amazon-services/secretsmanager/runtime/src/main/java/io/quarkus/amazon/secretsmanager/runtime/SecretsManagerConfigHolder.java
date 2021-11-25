@@ -5,14 +5,13 @@ import javax.inject.Singleton;
 @Singleton
 public class SecretsManagerConfigHolder {
 
-    private SecretsManagerConfig secretsManagerConfig;
+    private SecretsManagerBootstrapConfig secretsManagerBootstrapConfig;
 
-    public SecretsManagerConfig getSecretsManagerConfig() {
-        return secretsManagerConfig;
+    public SecretsManagerBootstrapConfig getSecretsManagerBootstrapConfig() {
+        return secretsManagerBootstrapConfig;
     }
 
-    public SecretsManagerConfigHolder setSecretsManagerConfig(SecretsManagerConfig secretsManagerConfig) {
-        this.secretsManagerConfig = secretsManagerConfig;
-        return this;
+    void setSecretsManagerBootstrapConfig(SecretsManagerBootstrapConfig secretsManagerBootstrapConfig) {
+        this.secretsManagerBootstrapConfig = secretsManagerBootstrapConfig;
     }
 }
