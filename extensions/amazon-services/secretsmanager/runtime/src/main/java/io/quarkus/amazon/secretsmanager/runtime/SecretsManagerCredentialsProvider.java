@@ -9,8 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.jboss.logging.Logger;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -21,13 +19,12 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 @ApplicationScoped
 @Named("secrets-manager-credentials-provider")
 public class SecretsManagerCredentialsProvider implements CredentialsProvider {
-    private static final Logger LOG = Logger.getLogger(SecretsManagerCredentialsProvider.class);
 
     @Inject
     private SecretsManagerClient syncClient;
 
     @Inject
-    private SecretsManagerConfigHolder secretsManagerConfigHolder;
+    private SecretsManagerConfig secretsManagerConfig;
 
     @Inject
     private ObjectMapper objectMapper;
@@ -35,28 +32,27 @@ public class SecretsManagerCredentialsProvider implements CredentialsProvider {
     @Override
     public Map<String, String> getCredentials(String credentialsProviderName) {
 
-        LOG.error("la config : " + getConfig().credentialsProvider);
-        CredentialsProviderConfig config = getConfig().credentialsProvider.get(credentialsProviderName);
+        CredentialsProviderConfig config = secretsManagerConfig.credentialsProvider.get(credentialsProviderName);
 
         if (config == null) {
-            throw new SecretsManagerException("unknown credentials provider with name " + credentialsProviderName);
+            throw new SecretsManagerException("Unknown credentials provider with name " + credentialsProviderName);
         }
 
+        if (syncClient == null) {
+            throw new SecretsManagerException("SecretManagerClient has not be configured");
+        }
         GetSecretValueResponse secretValue = syncClient.getSecretValue(r -> r.secretId(config.secretId));
-        String secretString = config.secretType == STRING ? secretValue.secretString()
+        String secretString = config.type == STRING ? secretValue.secretString()
                 : secretValue.secretBinary().asUtf8String();
 
         Map<String, String> secretMap;
         try {
             secretMap = objectMapper.readValue(secretString, HashMap.class);
         } catch (JsonProcessingException e) {
-            throw new SecretsManagerException("unable to parse the secret", e);
+            throw new SecretsManagerException("Unable to parse the secret", e);
         }
 
         return secretMap;
     }
 
-    private SecretsManagerBootstrapConfig getConfig() {
-        return secretsManagerConfigHolder.getSecretsManagerBootstrapConfig();
-    }
 }

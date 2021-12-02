@@ -19,11 +19,9 @@ import io.quarkus.amazon.common.runtime.AmazonClientApacheTransportRecorder;
 import io.quarkus.amazon.common.runtime.AmazonClientNettyTransportRecorder;
 import io.quarkus.amazon.common.runtime.AmazonClientRecorder;
 import io.quarkus.amazon.common.runtime.AmazonClientUrlConnectionTransportRecorder;
-import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerBootstrapConfig;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerBuildTimeConfig;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerClientProducer;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerConfig;
-import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerConfigHolder;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerCredentialsProvider;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerMapperRecorder;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerRecorder;
@@ -86,13 +84,6 @@ public class SecretsManagerProcessor extends AbstractAmazonServiceProcessor {
     public void staticInit(BeanContainerBuildItem beanContainer, // make sure beanContainer is initialized
             SecretsManagerMapperRecorder recorder) {
         recorder.initObjectMapper();
-    }
-
-    @BuildStep
-    @Record(RUNTIME_INIT)
-    void configure(SecretsManagerRecorder recorder,
-            SecretsManagerBootstrapConfig secretsManagerBootstrapConfig, SecretsManagerConfig secretsManagerConfig) {
-        recorder.configure(secretsManagerBootstrapConfig);
     }
 
     @BuildStep
@@ -175,7 +166,6 @@ public class SecretsManagerProcessor extends AbstractAmazonServiceProcessor {
     AdditionalBeanBuildItem registerAdditionalBeans() {
         return new AdditionalBeanBuildItem.Builder()
                 .setUnremovable()
-                .addBeanClass(SecretsManagerConfigHolder.class)
                 .addBeanClass(SecretsManagerCredentialsProvider.class)
                 .build();
     }

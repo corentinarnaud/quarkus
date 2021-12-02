@@ -16,7 +16,7 @@ public class CredentialsProviderConfig {
      * Indicate if the type of the secret is string or binary
      */
     @ConfigItem(defaultValue = "string")
-    public SecretType secretType;
+    public SecretType type;
 
     public enum SecretType {
         STRING,

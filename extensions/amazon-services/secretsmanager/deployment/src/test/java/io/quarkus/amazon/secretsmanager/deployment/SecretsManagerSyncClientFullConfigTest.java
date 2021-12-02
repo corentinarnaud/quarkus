@@ -1,18 +1,18 @@
 package io.quarkus.amazon.secretsmanager.deployment;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import javax.inject.Inject;
 
-import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerBootstrapConfig;
-import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerConfigHolder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerConfig;
 import io.quarkus.amazon.secretsmanager.runtime.SecretsManagerCredentialsProvider;
 import io.quarkus.test.QuarkusUnitTest;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerAsyncClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SecretsManagerSyncClientFullConfigTest {
 
@@ -25,7 +25,8 @@ public class SecretsManagerSyncClientFullConfigTest {
     @Inject
     SecretsManagerCredentialsProvider credentialsProvider;
 
-    @Inject SecretsManagerConfigHolder secretsManagerConfigHolder;
+    @Inject
+    SecretsManagerConfig secretsManagerConfig;
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
@@ -34,8 +35,9 @@ public class SecretsManagerSyncClientFullConfigTest {
 
     @Test
     public void test() {
-        SecretsManagerBootstrapConfig secretsManagerBootstrapConfig = secretsManagerConfigHolder.getSecretsManagerBootstrapConfig();
-        assertNotNull(secretsManagerBootstrapConfig);
+        assertNotNull(secretsManagerConfig.credentialsProvider);
+        System.out.println(secretsManagerConfig.credentialsProvider);
+        assertEquals(secretsManagerConfig.credentialsProvider.size(), 1);
         // should finish with success
     }
 }

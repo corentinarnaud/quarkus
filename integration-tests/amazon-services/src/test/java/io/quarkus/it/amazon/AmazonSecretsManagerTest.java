@@ -23,6 +23,6 @@ public class AmazonSecretsManagerTest {
     @Test
     public void testSecretsManagerCredentialsProvider() {
         RestAssured.when().get("/test/secretsmanager/credential").then()
-                .body(is("{\"username\": \"quarkus\", \"password\": \"awsome\"}"));
+                .body(is("{password=awesome, username=quarkus}"));
     }
 }

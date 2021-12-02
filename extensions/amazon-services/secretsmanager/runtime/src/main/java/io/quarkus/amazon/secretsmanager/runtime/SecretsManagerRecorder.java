@@ -4,7 +4,6 @@ import io.quarkus.amazon.common.runtime.AwsConfig;
 import io.quarkus.amazon.common.runtime.NettyHttpClientConfig;
 import io.quarkus.amazon.common.runtime.SdkConfig;
 import io.quarkus.amazon.common.runtime.SyncHttpClientConfig;
-import io.quarkus.arc.Arc;
 import io.quarkus.runtime.RuntimeValue;
 import io.quarkus.runtime.annotations.Recorder;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
@@ -32,13 +31,6 @@ public class SecretsManagerRecorder {
 
     public RuntimeValue<SdkConfig> getSdkConfig(SecretsManagerConfig config) {
         return new RuntimeValue<>(config.sdk);
-    }
-
-    public RuntimeValue<SecretsManagerBootstrapConfig> configure(SecretsManagerBootstrapConfig config) {
-        RuntimeValue<SecretsManagerBootstrapConfig> secretsManagerBootstrapConfigRuntimeValue = new RuntimeValue<>(config);
-        Arc.container().instance(SecretsManagerConfigHolder.class).get()
-                .setSecretsManagerBootstrapConfig(secretsManagerBootstrapConfigRuntimeValue.getValue());
-        return secretsManagerBootstrapConfigRuntimeValue;
     }
 
     public RuntimeValue<AwsClientBuilder> createSyncBuilder(SecretsManagerConfig config,

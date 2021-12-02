@@ -22,8 +22,8 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 public class SecretsManagerResource {
 
     private static final Logger LOG = Logger.getLogger(SecretsManagerResource.class);
-    public final static String TEXT = "Quarkus is awsome";
-    public final static String CREDENTIALS = "{\"username\": \"quarkus\", \"password\": \"awsome\"}";
+    private static final String TEXT = "Quarkus is awsome";
+    private static final String CREDENTIALS = "{\"username\": \"quarkus\", \"password\": \"awesome\"}";
     private static final String SYNC_PARAM = "quarkus/sync-" + UUID.randomUUID().toString();
     private static final String ASYNC_PARAM = "quarkus/async-" + UUID.randomUUID().toString();
     private static final String CRED_PARAM = "quarkus/credential";
